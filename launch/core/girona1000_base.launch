@@ -8,7 +8,8 @@
 
     <!-- Common configs -->
     <rosparam command="load" ns="captain" file="$(arg config_folder)/captain.yaml" />
-    <rosparam command="load" ns="controller" file="$(find sensorless_force_control)/config/girona1000/controller_vectorial.yaml" />
+    <rosparam command="load" ns="controller"
+        file="$(find sensorless_force_control)/config/girona1000/controller_vectorial.yaml" />
     <rosparam command="load" ns="default_param_handler"
         file="$(arg config_folder)/default_param_handler.yaml" />
     <rosparam command="load" ns="diagnostic_aggregator"
@@ -36,7 +37,8 @@
     </node>
     <node name="safe_depth_altitude" pkg="cola2_safety" type="safe_depth_altitude_node"
         output="screen" />
-    <!-- <node name="safety_supervisor" pkg="cola2_safety" type="safety_supervisor_node" output="screen" />
+    <!-- <node name="safety_supervisor" pkg="cola2_safety" type="safety_supervisor_node"
+    output="screen" />
     <node name="safety_supervisor_checker" pkg="cola2_safety" type="safety_supervisor_checker_node"
         output="screen" /> -->
     <node name="virtual_cage" pkg="cola2_safety" type="virtual_cage_node" output="screen" />
@@ -53,9 +55,26 @@
     <node name="captain" pkg="cola2_control" type="captain_node" output="screen">
         <param name="vehicle_config_launch_mission_package" value="cola2_$(arg robot_name)" />
     </node>
-    <node name="controller" pkg="cola2_control" type="controller_node" />
+    <node name="controller" pkg="cola2_control" type="controller_node">
+        <remap from="controller/thruster_setpoints" to="controller/thruster_setpoints_cola2" />
+    </node>
+    <node name="teleoperation" pkg="cola2_control" type="teleoperation_node" output="screen">
+        <remap from="controller/thruster_setpoints" to="controller/thruster_setpoints_cola2" />
+    </node>
+
+    <node name="thrusters_mux" pkg="sensorless_force_control" type="thrusters_mux.py"
+        output="screen">
+        <param name="output_topic" value="controller/thruster_setpoints" />
+        <param name="base_topic" value="controller/passthrough_thruster_setpoints" />
+        <param name="safety_topic" value="controller/thruster_setpoints_cola2" />
+        <param name="requester_topic" value="controller/merged_body_force_req" />
+
+        <param name="base_timeout" value="0.5" />
+        <param name="priority_threshold" value="30" />
+        <param name="publish_rate" value="20.0" />
+    </node>
+
     <node name="pilot" pkg="cola2_control" type="pilot_node" output="screen" />
-    <node name="teleoperation" pkg="cola2_control" type="teleoperation_node" output="screen" />
     <!-- <node name="test_thrusters" pkg="cola2_control" type="test_thrusters.py" output="screen"/> -->
 
     <!-- Log -->
